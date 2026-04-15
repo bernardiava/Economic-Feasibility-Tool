@@ -7,7 +7,7 @@ The model simulates a simplified economy with two sectors (Agriculture and Manuf
 
 ## ⚠️ Legal Notice & Licensing
 
-**© [Your Name/Username]. All Rights Reserved.**
+**© bernardiava. All Rights Reserved.**
 
 - **Usage Restrictions**: This software is provided for educational and research purposes only. Commercial use, redistribution, or modification without explicit written permission from the copyright holder is strictly prohibited.
 - **Citation Requirement**: If you use this code, model, or any generated results in your research, publications, or presentations, you **must** cite this repository properly (see Citation section below).
@@ -108,19 +108,19 @@ If you use this software or its outputs in your work, please cite it as follows:
 **BibTeX:**
 ```bibtex
 @software{cge_subsidy_sim_2024,
-  author = {[Your Name]},
+  author = {Bernardia Vitri Arumsari},
   title = {Interactive CGE Simulation with Subsidy Analysis},
-  year = {2024},
-  url = {https://github.com/[YourUsername]/[YourRepository]},
+  year = {2026},
+  url = {[https://github.com/bernardiava/Economic-Feasibility-Tool/]},
   note = {All Rights Reserved. Used with permission.}
 }
 ```
 
 **APA Style:**
-> [Your Name] (2024). *Interactive CGE Simulation with Subsidy Analysis* [Computer software]. Retrieved from https://github.com/[YourUsername]/[YourRepository]
+> Bernardia Vitri Arumsari (2026). *Interactive CGE Simulation with Subsidy Analysis* [Computer software]. Retrieved from https://github.com/bernardiava/Economic-Feasibility-Tool/
 
 ## Disclaimer
 This model is a simplified representation of an economy intended for educational and illustrative purposes. It should not be used as the sole basis for real-world policy decisions without further validation and calibration by qualified economists.
 
 ---
-**Copyright © 2024 [Your Name]. All Rights Reserved.**
+**Copyright © 2024 Bernardia Vitri Arumsari. All Rights Reserved.**
