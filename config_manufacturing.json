@@ -1,0 +1,19 @@
+{
+  "sectors": ["Agriculture", "Manufacturing"],
+  "factors": ["Labor", "Capital"],
+  "production_elasticities": {
+    "Agriculture": {"Labor": 0.7, "Capital": 0.3},
+    "Manufacturing": {"Labor": 0.4, "Capital": 0.6}
+  },
+  "factor_endowments": {"Labor": 120.0, "Capital": 80.0},
+  "initial_prices": {"Agriculture": 1.0, "Manufacturing": 1.0},
+  "factor_prices": {"Labor": 1.0, "Capital": 1.0},
+  "consumer_preferences": {"Agriculture": 0.4, "Manufacturing": 0.6},
+  "subsidy": {
+    "sector": "Manufacturing",
+    "rate": 0.25
+  },
+  "max_iterations": 1000,
+  "tolerance": 1e-6,
+  "adjustment_speed": 0.1
+}
