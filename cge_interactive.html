@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive CGE Simulation with Subsidy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 8px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        input[type="range"], input[type="number"], select {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .value-display {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+        button {
+            grid-column: 1 / -1;
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .chart-container {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            height: 300px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .positive { color: #27ae60; font-weight: bold; }
+        .negative { color: #c0392b; font-weight: bold; }
+        .macro-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .stat-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏛️ Interactive CGE Simulation: Subsidy Policy</h1>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="subsidyRate">Subsidy Rate (%)</label>
+            <input type="range" id="subsidyRate" min="0" max="50" step="1" value="20">
+            <div class="value-display">Current: <span id="subsidyValue">20</span>%</div>
+        </div>
+
+        <div class="control-group">
+            <label for="targetSector">Target Sector</label>
+            <select id="targetSector">
+                <option value="0">Agriculture</option>
+                <option value="1">Manufacturing</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="laborEndowment">Total Labor Supply</label>
+            <input type="number" id="laborEndowment" value="100" min="10" max="500">
+        </div>
+
+        <div class="control-group">
+            <label for="capitalEndowment">Total Capital Supply</label>
+            <input type="number" id="capitalEndowment" value="100" min="10" max="500">
+        </div>
+
+        <div class="control-group">
+            <label for="prefAgri">Consumer Preference (Agri %)</label>
+            <input type="range" id="prefAgri" min="10" max="90" step="5" value="50">
+            <div class="value-display">Agri: <span id="prefAgriValue">50</span>% | Manuf: <span id="prefManufValue">50</span>%</div>
+        </div>
+
+        <button onclick="runSimulation()">Run Simulation</button>
+    </div>
+
+    <div class="macro-stats" id="macroStats">
+        <!-- Stats injected by JS -->
+    </div>
+
+    <div class="results-grid">
+        <div class="chart-container">
+            <canvas id="outputChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="factorChart"></canvas>
+        </div>
+    </div>
+
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th>Agriculture</th>
+                <th>Manufacturing</th>
+                <th>% Change (Agri)</th>
+                <th>% Change (Manuf)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data injected by JS -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Global chart instances
+    let outputChartInst = null;
+    let factorChartInst = null;
+
+    // Update sliders display
+    document.getElementById('subsidyRate').addEventListener('input', (e) => {
+        document.getElementById('subsidyValue').textContent = e.target.value;
+    });
+
+    document.getElementById('prefAgri').addEventListener('input', (e) => {
+        const val = e.target.value;
+        document.getElementById('prefAgriValue').textContent = val;
+        document.getElementById('prefManufValue').textContent = 100 - val;
+    });
+
+    function solveCGE(params) {
+        const { L_tot, K_tot, alpha, beta, gamma } = params;
+        
+        // Production Functions: Q = A * L^alpha * K^(1-alpha)
+        // We assume A=1 for simplicity.
+        // Cost minimization implies w/r = (alpha/(1-alpha)) * (K/L)
+        // So K/L = (w/r) * ((1-alpha)/alpha)
+        
+        // Let omega = w/r (relative wage)
+        // K_i / L_i = omega * (1-alpha_i) / alpha_i
+        
+        // Market Clearing:
+        // L_1 + L_2 = L_tot
+        // K_1 + K_2 = K_tot
+        
+        // Substitute K_i:
+        // L_1 * (omega * (1-alpha)/alpha) + L_2 * (omega * (1-beta)/beta) = K_tot
+        // L_2 = L_tot - L_1
+        
+        // This system solves for relative prices and allocations based on demand.
+        // However, with Cobb-Douglas utility and production, we can derive closed forms or use a simple solver.
+        
+        // Simplified Approach for Interactive Demo:
+        // 1. Guess relative price of goods p1/p2.
+        // 2. Determine factor prices w, r.
+        // 3. Determine demands.
+        // 4. Check market clearing.
+        
+        // Even simpler: Analytical solution for Cobb-Douglas Cobb-Douglas economy.
+        // But to support subsidy easily, we use a numerical solver (Newton-Raphson or simple iteration).
+        
+        // Let's use a simple tatonnement on relative wage omega = w/r.
+        // Actually, let's solve for equilibrium outputs directly using the property that 
+        // expenditure shares are constant.
+        
+        // With subsidy s on sector 1: Producer receives p1*(1+s).
+        // Consumer pays p1.
+        // Govt spends G = s * p1 * Q1.
+        // Consumer Income Y = w*L + r*K + Profit (Profit=0 in CRS) - Taxes.
+        // Assume lump-sum tax to balance budget? Or just ignore budget balance for partial eq feel?
+        // Let's assume balanced budget: Tax T = G. Y = wL + rK - T.
+        
+        // Algorithm:
+        // 1. Normalize r=1. Solve for w.
+        // 2. Unit costs c1(w,1), c2(w,1).
+        // 3. Prices p1 = c1 / (1+s), p2 = c2. (Zero profit condition)
+        // 4. Income Y = w*L_tot + 1*K_tot - (s * p1 * Q1). Wait, Q1 depends on demand.
+        // Iterative loop:
+        
+        let w = 1.0; // Initial guess for wage (r=1)
+        const r = 1.0;
+        
+        for (let iter = 0; iter < 100; iter++) {
+            // Unit costs (Cobb Douglas: c = w^alpha * r^(1-alpha) * constant)
+            // Constant depends on alpha. c = (1/ (alpha^alpha * (1-alpha)^(1-alpha))) * w^alpha * r^(1-alpha)
+            const const1 = 1 / (Math.pow(alpha, alpha) * Math.pow(1-alpha, 1-alpha));
+            const const2 = 1 / (Math.pow(beta, beta) * Math.pow(1-beta, 1-beta));
+            
+            const c1 = const1 * Math.pow(w, alpha) * Math.pow(r, 1-alpha);
+            const c2 = const2 * Math.pow(w, beta) * Math.pow(r, 1-beta);
+            
+            // Prices with subsidy on sector 'subIdx'
+            let p1, p2;
+            if (params.subIdx === 0) {
+                p1 = c1 / (1 + params.s);
+                p2 = c2;
+            } else {
+                p1 = c1;
+                p2 = c2 / (1 + params.s);
+            }
+            
+            // Factor demands per unit output
+            // L_per_Q = alpha * c / w
+            const L1_per_Q = alpha * c1 / w;
+            const K1_per_Q = (1-alpha) * c1 / r;
+            const L2_per_Q = beta * c2 / w;
+            const K2_per_Q = (1-beta) * c2 / r;
+            
+            // Demand side
+            // Income Y = w*L + r*K - GovtSpending
+            // GovtSpending = s * p_sub * Q_sub
+            // This is circular. Let's approximate Y ≈ wL + rK for first step, then refine.
+            // Actually, solve linear system for Q1, Q2 given Y.
+            // Q1 = gamma * Y / p1
+            // Q2 = (1-gamma) * Y / p2
+            // Y = wL + rK - s * p_sub * Q_sub
+            
+            // Substitute Q_sub into Y equation:
+            // If subIdx == 0: Y = wL + rK - s * p1 * (gamma * Y / p1) = wL + rK - s * gamma * Y
+            // Y * (1 + s*gamma) = wL + rK  => Y = (wL+rK) / (1 + s*gamma)
+            
+            let Y_raw = w * L_tot + r * K_tot;
+            let Y;
+            if (params.subIdx === 0) {
+                Y = Y_raw / (1 + params.s * gamma);
+            } else {
+                Y = Y_raw / (1 + params.s * (1-gamma));
+            }
+            
+            const Q1 = gamma * Y / p1;
+            const Q2 = (1-gamma) * Y / p2;
+            
+            // Factor Market Clearing Error
+            const L_demand = Q1 * L1_per_Q + Q2 * L2_per_Q;
+            const K_demand = Q1 * K1_per_Q + Q2 * K2_per_Q;
+            
+            const err_L = (L_demand - L_tot) / L_tot;
+            const err_K = (K_demand - K_tot) / K_tot;
+            
+            // Adjust w. If L_demand > L_tot, w should rise.
+            // Simple proportional adjustment
+            w = w * (1 + 0.1 * err_L); 
+            
+            if (Math.abs(err_L) < 0.0001 && Math.abs(err_K) < 0.0001) break;
+        }
+        
+        // Final Calculation with converged w
+        const const1 = 1 / (Math.pow(alpha, alpha) * Math.pow(1-alpha, 1-alpha));
+        const const2 = 1 / (Math.pow(beta, beta) * Math.pow(1-beta, 1-beta));
+        const c1 = const1 * Math.pow(w, alpha) * Math.pow(r, 1-alpha);
+        const c2 = const2 * Math.pow(w, beta) * Math.pow(r, 1-beta);
+        
+        let p1, p2;
+        if (params.subIdx === 0) {
+            p1 = c1 / (1 + params.s);
+            p2 = c2;
+        } else {
+            p1 = c1;
+            p2 = c2 / (1 + params.s);
+        }
+        
+        const L1_per_Q = alpha * c1 / w;
+        const K1_per_Q = (1-alpha) * c1 / r;
+        const L2_per_Q = beta * c2 / w;
+        const K2_per_Q = (1-beta) * c2 / r;
+        
+        let Y_raw = w * L_tot + r * K_tot;
+        let Y;
+        if (params.subIdx === 0) {
+            Y = Y_raw / (1 + params.s * gamma);
+        } else {
+            Y = Y_raw / (1 + params.s * (1-gamma));
+        }
+        
+        const Q1 = gamma * Y / p1;
+        const Q2 = (1-gamma) * Y / p2;
+        
+        const L1 = Q1 * L1_per_Q;
+        const K1 = Q1 * K1_per_Q;
+        const L2 = Q2 * L2_per_Q;
+        const K2 = Q2 * K2_per_Q;
+        
+        const GovtSpend = params.s * (params.subIdx === 0 ? p1 * Q1 : p2 * Q2);
+        
+        // Utility U = Q1^gamma * Q2^(1-gamma)
+        const Utility = Math.pow(Q1, gamma) * Math.pow(Q2, 1-gamma);
+        
+        return {
+            Q1, Q2, L1, L2, K1, K2, p1, p2, w, r, Y, GovtSpend, Utility
+        };
+    }
+
+    function runSimulation() {
+        const s = parseFloat(document.getElementById('subsidyRate').value) / 100;
+        const subIdx = parseInt(document.getElementById('targetSector').value);
+        const L_tot = parseFloat(document.getElementById('laborEndowment').value);
+        const K_tot = parseFloat(document.getElementById('capitalEndowment').value);
+        const gamma = parseFloat(document.getElementById('prefAgri').value) / 100;
+        
+        // Production elasticities (Alpha for Agri, Beta for Manuf)
+        const alpha = 0.6; // Labor intensive
+        const beta = 0.3;  // Capital intensive
+        
+        // 1. Baseline (s=0)
+        const base = solveCGE({ s: 0, subIdx: 0, L_tot, K_tot, alpha, beta, gamma });
+        
+        // 2. Scenario
+        const scen = solveCGE({ s, subIdx, L_tot, K_tot, alpha, beta, gamma });
+        
+        updateDashboard(base, scen, subIdx);
+    }
+
+    function updateDashboard(base, scen, subIdx) {
+        // Macro Stats
+        const utilChange = ((scen.Utility - base.Utility) / base.Utility) * 100;
+        const wageChange = ((scen.w - base.w) / base.w) * 100;
+        
+        document.getElementById('macroStats').innerHTML = `
+            <div class="stat-card">
+                <div class="stat-label">Welfare Change</div>
+                <div class="stat-value ${utilChange >= 0 ? 'positive' : 'negative'}">${utilChange.toFixed(2)}%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Govt. Spending</div>
+                <div class="stat-value">$${scen.GovtSpend.toFixed(2)}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Wage Rate Change</div>
+                <div class="stat-value ${wageChange >= 0 ? 'positive' : 'negative'}">${wageChange.toFixed(2)}%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Target Sector</div>
+                <div class="stat-value">${subIdx === 0 ? 'Agriculture' : 'Manufacturing'}</div>
+            </div>
+        `;
+
+        // Table
+        const q1_chg = ((scen.Q1 - base.Q1) / base.Q1) * 100;
+        const q2_chg = ((scen.Q2 - base.Q2) / base.Q2) * 100;
+        const p1_chg = ((scen.p1 - base.p1) / base.p1) * 100;
+        const p2_chg = ((scen.p2 - base.p2) / base.p2) * 100;
+        
+        document.querySelector('#resultsTable tbody').innerHTML = `
+            <tr>
+                <td><strong>Output (Q)</strong></td>
+                <td>${scen.Q1.toFixed(2)}</td>
+                <td>${scen.Q2.toFixed(2)}</td>
+                <td class="${q1_chg >= 0 ? 'positive' : 'negative'}">${q1_chg > 0 ? '+' : ''}${q1_chg.toFixed(2)}%</td>
+                <td class="${q2_chg >= 0 ? 'positive' : 'negative'}">${q2_chg > 0 ? '+' : ''}${q2_chg.toFixed(2)}%</td>
+            </tr>
+            <tr>
+                <td><strong>Price (p)</strong></td>
+                <td>${scen.p1.toFixed(2)}</td>
+                <td>${scen.p2.toFixed(2)}</td>
+                <td class="${p1_chg >= 0 ? 'positive' : 'negative'}">${p1_chg > 0 ? '+' : ''}${p1_chg.toFixed(2)}%</td>
+                <td class="${p2_chg >= 0 ? 'positive' : 'negative'}">${p2_chg > 0 ? '+' : ''}${p2_chg.toFixed(2)}%</td>
+            </tr>
+            <tr>
+                <td><strong>Labor Use</strong></td>
+                <td>${scen.L1.toFixed(2)}</td>
+                <td>${scen.L2.toFixed(2)}</td>
+                <td>-</td><td>-</td>
+            </tr>
+            <tr>
+                <td><strong>Capital Use</strong></td>
+                <td>${scen.K1.toFixed(2)}</td>
+                <td>${scen.K2.toFixed(2)}</td>
+                <td>-</td><td>-</td>
+            </tr>
+        `;
+
+        // Charts
+        renderCharts(base, scen);
+    }
+
+    function renderCharts(base, scen) {
+        const ctxOut = document.getElementById('outputChart').getContext('2d');
+        const ctxFac = document.getElementById('factorChart').getContext('2d');
+        
+        if (outputChartInst) outputChartInst.destroy();
+        if (factorChartInst) factorChartInst.destroy();
+        
+        outputChartInst = new Chart(ctxOut, {
+            type: 'bar',
+            data: {
+                labels: ['Agriculture', 'Manufacturing'],
+                datasets: [
+                    {
+                        label: 'Baseline Output',
+                        data: [base.Q1, base.Q2],
+                        backgroundColor: '#95a5a6'
+                    },
+                    {
+                        label: 'Subsidy Output',
+                        data: [scen.Q1, scen.Q2],
+                        backgroundColor: '#3498db'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Sectoral Output Comparison' } }
+            }
+        });
+        
+        factorChartInst = new Chart(ctxFac, {
+            type: 'doughnut',
+            data: {
+                labels: ['Agri Labor', 'Manuf Labor', 'Agri Capital', 'Manuf Capital'],
+                datasets: [{
+                    data: [scen.L1, scen.L2, scen.K1, scen.K2],
+                    backgroundColor: ['#e74c3c', '#c0392b', '#3498db', '#2980b9']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { title: { display: true, text: 'Factor Allocation' } }
+            }
+        });
+    }
+
+    // Run once on load
+    runSimulation();
+</script>
+
+</body>
+</html>
