@@ -1,1 +1,1 @@
-Nothing needs to be added to .gitignore since only a single HTML file was added and there are no build artifacts, dependencies, or temporary files in the changes.
+Nothing needs to be ignored based on the provided file changes. The only added file is README.md, which is a source/config file and should not be ignored.
