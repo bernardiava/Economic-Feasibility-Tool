@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Feasibility Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .cash-flow-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .cash-flow-item {
+            display: grid;
+            grid-template-columns: 80px 1fr 1fr 80px;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            padding: 8px 15px;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .results-section {
+            background: #ecf0f1;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .result-card h4 {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .result-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .result-card .value.positive {
+            color: #27ae60;
+        }
+
+        .result-card .value.negative {
+            color: #e74c3c;
+        }
+
+        .recommendation {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .recommendation h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .recommendation-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .chart-bar {
+            height: 30px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .cash-flow-item {
+                grid-template-columns: 60px 1fr 60px;
+            }
+
+            .cash-flow-item input[type="number"]:first-of-type {
+                grid-column: 1;
+            }
+
+            .cash-flow-item input[type="text"] {
+                grid-column: 2;
+            }
+
+            .cash-flow-item input[type="number"]:last-of-type {
+                grid-column: 3;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Economic Feasibility Assessment</h1>
+            <p>Comprehensive financial analysis for projects of any size</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <!-- Initial Investment -->
+                <div class="card">
+                    <h3>💰 Initial Investment</h3>
+                    <div class="form-group">
+                        <label for="initialInvestment">Initial Capital Investment ($)</label>
+                        <input type="number" id="initialInvestment" placeholder="e.g., 100000" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="workingCapital">Working Capital Required ($)</label>
+                        <input type="number" id="workingCapital" placeholder="e.g., 20000" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="salvageValue">Salvage/Residual Value ($)</label>
+                        <input type="number" id="salvageValue" placeholder="e.g., 10000" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Project Parameters -->
+                <div class="card">
+                    <h3>⏱️ Project Parameters</h3>
+                    <div class="form-group">
+                        <label for="projectLife">Project Life (Years)</label>
+                        <input type="number" id="projectLife" placeholder="e.g., 10" min="1" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="discountRate">Discount Rate / Cost of Capital (%)</label>
+                        <input type="number" id="discountRate" placeholder="e.g., 10" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="taxRate">Corporate Tax Rate (%)</label>
+                        <input type="number" id="taxRate" placeholder="e.g., 30" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+
+                <!-- Cash Flows -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <h3>📈 Annual Cash Flows</h3>
+                    <p style="color: #666; margin-bottom: 15px;">Enter expected annual revenues and operating costs for each year</p>
+                    
+                    <div class="cash-flow-container" id="cashFlowContainer">
+                        <!-- Cash flow rows will be added dynamically -->
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="addCashFlowRow()" style="margin-top: 15px;">
+                        + Add Year
+                    </button>
+                    <button class="btn btn-secondary" onclick="removeCashFlowRow()" style="margin-top: 15px; margin-left: 10px;">
+                        - Remove Year
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn btn-success" onclick="calculateFeasibility()">
+                🚀 Calculate Economic Feasibility
+            </button>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <h2 style="color: #2c3e50; margin-bottom: 25px; text-align: center;">📊 Analysis Results</h2>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h4>Net Present Value (NPV)</h4>
+                        <div class="value" id="npvValue">$0.00</div>
+                    </div>
+                    <div class="result-card">
+                        <h4>Internal Rate of Return (IRR)</h4>
+                        <div class="value" id="irrValue">0.00%</div>
+                    </div>
+                    <div class="result-card">
+                        <h4>Payback Period</h4>
+                        <div class="value" id="paybackValue">0.00 years</div>
+                    </div>
+                    <div class="result-card">
+                        <h4>Profitability Index (PI)</h4>
+                        <div class="value" id="piValue">0.00</div>
+                    </div>
+                    <div class="result-card">
+                        <h4>Benefit-Cost Ratio</h4>
+                        <div class="value" id="bcrValue">0.00</div>
+                    </div>
+                    <div class="result-card">
+                        <h4>Average ROI</h4>
+                        <div class="value" id="roiValue">0.00%</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 style="color: #2c3e50; margin-bottom: 20px;">Cumulative Cash Flow Visualization</h3>
+                    <div id="chartBars"></div>
+                </div>
+
+                <div class="recommendation">
+                    <h3>💡 Investment Recommendation</h3>
+                    <div class="recommendation-text" id="recommendationText"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cashFlowYears = 5;
+
+        // Initialize cash flow rows
+        function initCashFlows() {
+            const container = document.getElementById('cashFlowContainer');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= cashFlowYears; i++) {
+                addCashFlowRow(i);
+            }
+        }
+
+        function addCashFlowRow(yearNum = null) {
+            if (yearNum === null) {
+                cashFlowYears++;
+                yearNum = cashFlowYears;
+            }
+            
+            const container = document.getElementById('cashFlowContainer');
+            const row = document.createElement('div');
+            row.className = 'cash-flow-item';
+            row.dataset.year = yearNum;
+            row.innerHTML = `
+                <strong>Year ${yearNum}</strong>
+                <input type="text" placeholder="Description (optional)">
+                <input type="number" class="revenue" placeholder="Revenue ($)" min="0" step="0.01">
+                <input type="number" class="cost" placeholder="Cost ($)" min="0" step="0.01">
+            `;
+            container.appendChild(row);
+        }
+
+        function removeCashFlowRow() {
+            if (cashFlowYears > 1) {
+                const container = document.getElementById('cashFlowContainer');
+                const rows = container.querySelectorAll('.cash-flow-item');
+                if (rows.length > 0) {
+                    rows[rows.length - 1].remove();
+                    cashFlowYears--;
+                }
+            }
+        }
+
+        // NPV Calculation
+        function calculateNPV(cashFlows, discountRate) {
+            let npv = 0;
+            for (let t = 0; t < cashFlows.length; t++) {
+                npv += cashFlows[t] / Math.pow(1 + discountRate, t);
+            }
+            return npv;
+        }
+
+        // IRR Calculation using Newton-Raphson method
+        function calculateIRR(cashFlows, guess = 0.1) {
+            const maxIterations = 1000;
+            const precision = 0.0001;
+            let rate = guess;
+            
+            for (let i = 0; i < maxIterations; i++) {
+                let npv = 0;
+                let derivative = 0;
+                
+                for (let t = 0; t < cashFlows.length; t++) {
+                    npv += cashFlows[t] / Math.pow(1 + rate, t);
+                    if (t > 0) {
+                        derivative -= t * cashFlows[t] / Math.pow(1 + rate, t + 1);
+                    }
+                }
+                
+                if (Math.abs(npv) < precision) {
+                    return rate;
+                }
+                
+                if (derivative === 0) {
+                    break;
+                }
+                
+                const newRate = rate - npv / derivative;
+                if (newRate <= -1 || !isFinite(newRate)) {
+                    rate = rate / 2;
+                } else {
+                    rate = newRate;
+                }
+            }
+            
+            return rate;
+        }
+
+        // Payback Period Calculation
+        function calculatePaybackPeriod(cashFlows, initialInvestment) {
+            let cumulative = -initialInvestment;
+            
+            for (let t = 0; t < cashFlows.length; t++) {
+                const prevCumulative = cumulative;
+                cumulative += cashFlows[t];
+                
+                if (cumulative >= 0) {
+                    if (t === 0) {
+                        return initialInvestment / cashFlows[0];
+                    }
+                    return t + (Math.abs(prevCumulative) / cashFlows[t]);
+                }
+            }
+            
+            return null; // Never pays back
+        }
+
+        // Main calculation function
+        function calculateFeasibility() {
+            // Get input values
+            const initialInvestment = parseFloat(document.getElementById('initialInvestment').value) || 0;
+            const workingCapital = parseFloat(document.getElementById('workingCapital').value) || 0;
+            const salvageValue = parseFloat(document.getElementById('salvageValue').value) || 0;
+            const projectLife = parseInt(document.getElementById('projectLife').value) || 10;
+            const discountRate = (parseFloat(document.getElementById('discountRate').value) || 10) / 100;
+            const taxRate = (parseFloat(document.getElementById('taxRate').value) || 30) / 100;
+
+            // Validate inputs
+            if (initialInvestment <= 0) {
+                alert('Please enter a valid initial investment amount.');
+                return;
+            }
+
+            // Collect cash flows
+            const revenueInputs = document.querySelectorAll('.revenue');
+            const costInputs = document.querySelectorAll('.cost');
+            
+            const annualCashFlows = [];
+            for (let i = 0; i < revenueInputs.length; i++) {
+                const revenue = parseFloat(revenueInputs[i].value) || 0;
+                const cost = parseFloat(costInputs[i].value) || 0;
+                const operatingIncome = revenue - cost;
+                const afterTaxIncome = operatingIncome * (1 - taxRate);
+                // Add back non-cash expenses if needed (simplified here)
+                annualCashFlows.push(afterTaxIncome);
+            }
+
+            // Build complete cash flow timeline
+            const totalInitialOutlay = initialInvestment + workingCapital;
+            const cashFlows = [-totalInitialOutlay]; // Year 0
+            
+            // Add annual cash flows
+            for (let i = 0; i < annualCashFlows.length; i++) {
+                cashFlows.push(annualCashFlows[i]);
+            }
+            
+            // Add salvage value and working capital recovery in final year
+            if (cashFlows.length > 1) {
+                cashFlows[cashFlows.length - 1] += salvageValue + workingCapital;
+            }
+
+            // Calculate metrics
+            const npv = calculateNPV(cashFlows, discountRate);
+            const irr = calculateIRR(cashFlows);
+            const paybackPeriod = calculatePaybackPeriod(cashFlows.slice(1), totalInitialOutlay);
+            
+            // Calculate Profitability Index
+            const pvOfFutureCashFlows = calculateNPV(cashFlows.slice(1), discountRate);
+            const profitabilityIndex = pvOfFutureCashFlows / totalInitialOutlay;
+            
+            // Calculate Benefit-Cost Ratio
+            const totalBenefits = cashFlows.slice(1).reduce((sum, cf) => sum + cf, 0);
+            const totalCosts = totalInitialOutlay;
+            const bcr = totalBenefits / totalCosts;
+            
+            // Calculate Average ROI
+            const averageAnnualReturn = cashFlows.slice(1).reduce((sum, cf) => sum + cf, 0) / cashFlows.length;
+            const avgROI = (averageAnnualReturn / totalInitialOutlay) * 100;
+
+            // Display results
+            displayResults(npv, irr, paybackPeriod, profitabilityIndex, bcr, avgROI, cashFlows);
+        }
+
+        function displayResults(npv, irr, paybackPeriod, pi, bcr, roi, cashFlows) {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.add('active');
+
+            // Format and display NPV
+            const npvElement = document.getElementById('npvValue');
+            npvElement.textContent = formatCurrency(npv);
+            npvElement.className = 'value ' + (npv >= 0 ? 'positive' : 'negative');
+
+            // Format and display IRR
+            const irrElement = document.getElementById('irrValue');
+            irrElement.textContent = (irr * 100).toFixed(2) + '%';
+            irrElement.className = 'value ' + (irr >= 0 ? 'positive' : 'negative');
+
+            // Format and display Payback Period
+            const paybackElement = document.getElementById('paybackValue');
+            if (paybackPeriod !== null) {
+                paybackElement.textContent = paybackPeriod.toFixed(2) + ' years';
+                paybackElement.className = 'value positive';
+            } else {
+                paybackElement.textContent = 'Never';
+                paybackElement.className = 'value negative';
+            }
+
+            // Format and display PI
+            const piElement = document.getElementById('piValue');
+            piElement.textContent = pi.toFixed(2);
+            piElement.className = 'value ' + (pi >= 1 ? 'positive' : 'negative');
+
+            // Format and display BCR
+            const bcrElement = document.getElementById('bcrValue');
+            bcrElement.textContent = bcr.toFixed(2);
+            bcrElement.className = 'value ' + (bcr >= 1 ? 'positive' : 'negative');
+
+            // Format and display ROI
+            const roiElement = document.getElementById('roiValue');
+            roiElement.textContent = roi.toFixed(2) + '%';
+            roiElement.className = 'value ' + (roi >= 0 ? 'positive' : 'negative');
+
+            // Generate chart
+            generateChart(cashFlows);
+
+            // Generate recommendation
+            generateRecommendation(npv, irr, paybackPeriod, pi);
+        }
+
+        function generateChart(cashFlows) {
+            const chartContainer = document.getElementById('chartBars');
+            chartContainer.innerHTML = '';
+            
+            let cumulative = 0;
+            const maxAbs = Math.max(...cashFlows.map(cf => Math.abs(cf)));
+            
+            cashFlows.forEach((cf, index) => {
+                cumulative += cf;
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                const width = Math.min((Math.abs(cumulative) / maxAbs) * 100, 100);
+                bar.style.width = width + '%';
+                bar.style.background = cumulative >= 0 ? '#27ae60' : '#e74c3c';
+                bar.textContent = `Year ${index}: ${formatCurrency(cumulative)} (cumulative)`;
+                chartContainer.appendChild(bar);
+            });
+        }
+
+        function generateRecommendation(npv, irr, paybackPeriod, pi) {
+            const recommendationText = document.getElementById('recommendationText');
+            let recommendation = '';
+            let confidence = '';
+
+            // NPV decision
+            if (npv > 0) {
+                recommendation += '✅ <strong>POSITIVE NPV:</strong> The project adds value to the organization. ';
+            } else {
+                recommendation += '❌ <strong>NEGATIVE NPV:</strong> The project destroys value. ';
+            }
+
+            // IRR decision
+            if (irr > 0.1) { // Assuming 10% hurdle rate
+                recommendation += '✅ <strong>STRONG IRR:</strong> Returns exceed typical cost of capital. ';
+            } else if (irr > 0) {
+                recommendation += '⚠️ <strong>MODERATE IRR:</strong> Returns are positive but may not meet hurdle rates. ';
+            } else {
+                recommendation += '❌ <strong>NEGATIVE IRR:</strong> Project loses money. ';
+            }
+
+            // Payback period
+            if (paybackPeriod !== null) {
+                if (paybackPeriod <= 3) {
+                    recommendation += '✅ <strong>QUICK PAYBACK:</strong> Investment recovered in ' + paybackPeriod.toFixed(1) + ' years. ';
+                } else if (paybackPeriod <= 5) {
+                    recommendation += '⚠️ <strong>MODERATE PAYBACK:</strong> Investment recovered in ' + paybackPeriod.toFixed(1) + ' years. ';
+                } else {
+                    recommendation += '⚠️ <strong>SLOW PAYBACK:</strong> Investment recovered in ' + paybackPeriod.toFixed(1) + ' years. ';
+                }
+            } else {
+                recommendation += '❌ <strong>NO PAYBACK:</strong> Investment never fully recovered. ';
+            }
+
+            // Profitability Index
+            if (pi >= 1.5) {
+                recommendation += '✅ <strong>EXCELLENT PI:</strong> High value creation per dollar invested. ';
+            } else if (pi >= 1) {
+                recommendation += '✅ <strong>GOOD PI:</strong> Value creation per dollar invested. ';
+            } else {
+                recommendation += '❌ <strong>POOR PI:</strong> Less than $1 return per dollar invested. ';
+            }
+
+            // Overall recommendation
+            const positiveSignals = [npv > 0, irr > 0.1, paybackPeriod !== null && paybackPeriod <= 5, pi >= 1].filter(Boolean).length;
+            
+            recommendation += '<br><br><strong>OVERALL RECOMMENDATION: </strong>';
+            if (positiveSignals >= 3) {
+                recommendation += '<span style="color: #27ae60; font-weight: bold;">PROCEED WITH INVESTMENT</span> - The project shows strong economic feasibility across multiple metrics.';
+            } else if (positiveSignals >= 2) {
+                recommendation += '<span style="color: #f39c12; font-weight: bold;">PROCEED WITH CAUTION</span> - The project shows mixed signals. Consider risk mitigation strategies.';
+            } else {
+                recommendation += '<span style="color: #e74c3c; font-weight: bold;">DO NOT PROCEED</span> - The project does not demonstrate economic feasibility.';
+            }
+
+            recommendationText.innerHTML = recommendation;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        // Initialize on page load
+        window.onload = initCashFlows;
+    </script>
+</body>
+</html>
